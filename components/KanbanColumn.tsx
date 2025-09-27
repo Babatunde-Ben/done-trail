@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, VStack, HStack, Badge } from "@chakra-ui/react";
+import { Box, Text, VStack, HStack, Badge, Heading } from "@chakra-ui/react";
 import { Task, Project, TaskStatus } from "@/types";
 import TaskBox from "./TaskBox";
 
@@ -16,21 +16,18 @@ const KanbanColumn = ({
   projects,
   onTaskEdit,
 }: KanbanColumnProps) => {
-  const bgColor = "gray.50";
-  const borderColor = "gray.200";
-
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
       case "TODO":
-        return "gray";
+        return "gray.50";
       case "IN_PROGRESS":
-        return "blue";
+        return "blue.50";
       case "IN_REVIEW":
-        return "purple";
+        return "purple.50";
       case "DONE":
-        return "green";
+        return "green.50";
       default:
-        return "gray";
+        return "gray.50";
     }
   };
 
@@ -46,23 +43,24 @@ const KanbanColumn = ({
 
   return (
     <Box
-      bg={bgColor}
-      border="1px"
-      borderColor={borderColor}
+      bgColor={getStatusColor(status)}
+      borderWidth="1px"
+      borderColor={"gray.100"}
       borderRadius="lg"
-      p={4}
+      p={2}
       minH="600px"
-      w="300px"
+      minW="270px"
+      w="100%"
     >
       <VStack gap={4} align="stretch">
-        <HStack justify="space-between" align="center">
-          <Text fontSize="lg" fontWeight="semibold" textTransform="capitalize">
-            {status.replace("_", " ")}
-          </Text>
-          <Badge colorScheme={getStatusColor(status)} size="lg">
-            {tasks.length}
-          </Badge>
-        </HStack>
+        <Heading
+          fontSize="md"
+          fontWeight="semibold"
+          textTransform="capitalize"
+          textAlign="center"
+        >
+          {status.replace("_", " ")}
+        </Heading>
 
         <VStack gap={3} align="stretch" flex="1">
           {tasks.length === 0 ? (

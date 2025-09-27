@@ -55,6 +55,7 @@ A modern, responsive Kanban board application built with Next.js and Chakra UI f
 │   └── page.tsx            # Main page component
 ├── components/
 │   ├── TaskBox.tsx         # Individual task card component
+│   ├── TaskForm.tsx        # Task creation/editing form
 │   ├── KanbanColumn.tsx    # Column component for each status
 │   ├── KanbanBoard.tsx     # Main board component
 │   └── ui/                 # Chakra UI provider components

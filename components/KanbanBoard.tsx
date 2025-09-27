@@ -9,7 +9,9 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { Task, Project, TaskStatus } from "@/types";
-import KanbanColumn from "./KanbanColumn";
+import KanbanColumn from "@/components/KanbanColumn";
+import TaskForm from "@/components/TaskForm";
+import KanbanFilter from "@/components/KanbanFilter";
 
 const KanbanBoard = () => {
   const { open, onOpen, onClose } = useDisclosure();
@@ -145,7 +147,7 @@ const KanbanBoard = () => {
             Create New Task
           </Button>
         </HStack>
-
+        <KanbanFilter />
         <HStack gap={4} align="start" overflowX="auto" pb={4}>
           {statuses.map((status) => (
             <KanbanColumn
@@ -158,6 +160,15 @@ const KanbanBoard = () => {
           ))}
         </HStack>
       </VStack>
+
+      {/* <TaskForm
+        isOpen={open}
+        onClose={handleClose}
+        onSubmit={editingTask ? handleEditTask : handleCreateTask}
+        projects={projects}
+        initialData={editingTask || undefined}
+        mode={editingTask ? "edit" : "create"}
+      /> */}
     </Box>
   );
 };

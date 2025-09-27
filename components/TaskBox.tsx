@@ -1,5 +1,13 @@
 import React from "react";
-import { Box, Text, Badge, VStack, HStack, Separator } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  Badge,
+  VStack,
+  HStack,
+  Separator,
+  Card,
+} from "@chakra-ui/react";
 import { Task, Project, TaskPriority } from "@/types";
 import { TbSubtask } from "react-icons/tb";
 
@@ -31,55 +39,55 @@ const TaskBox = ({ task, project, onEdit }: TaskBoxProps) => {
   };
 
   return (
-    <Box
+    <Card.Root
       bg={"white"}
-      border="5px"
       borderColor={"gray.200"}
       borderRadius="md"
-      p={4}
       cursor="pointer"
-      _hover={{ shadow: "md" }}
+      _hover={{ shadow: "sm" }}
       onClick={() => onEdit?.(task)}
       minH="120px"
     >
-      <VStack align="stretch" gap={3}></VStack>
-      <Text
-        fontSize="lg"
-        fontWeight="semibold"
-        overflow="hidden"
-        textOverflow="ellipsis"
-        whiteSpace="nowrap"
+      <Card.Title
+        bgColor={"gray.100"}
+        fontSize={"sm"}
+        fontWeight={"semibold"}
+        p={2}
+        color={"gray.700"}
+        textOverflow={"ellipsis"}
+        textAlign={"center"}
       >
         {task.title}
-      </Text>
-      <Separator />
-      <HStack align="center" fontSize="sm">
-        <Text color="gray.500">Project:</Text>
-        <Text>{project.name}</Text>
-      </HStack>
-      <HStack align="center" fontSize="sm">
-        <Text color="gray.500">Priority:</Text>
-        <Badge colorScheme={getPriorityColor(task.priority)} size="sm">
-          {task.priority}
-        </Badge>
-      </HStack>
-      <HStack fontSize="sm">
-        <Text color="gray.500">Due Date:</Text>
-        <Text
-          color={
-            task.dueDate && new Date(task.dueDate) < new Date()
-              ? "red.500"
-              : "inherit"
-          }
-        >
-          {formatDate(task.dueDate)}
-        </Text>
-      </HStack>{" "}
-      <HStack fontSize="sm">
-        <Text color="gray.500">Start Date:</Text>
-        <Text>{formatDate(task.startDate)}</Text>
-      </HStack>
-    </Box>
+      </Card.Title>
+      <Card.Body p={2} spaceY={2} bgColor={"white"}>
+        <HStack align="center" fontSize="sm">
+          <Text fontWeight={"semibold"}>Project:</Text>
+          <Text color={"gray.500"}>{project.name}</Text>
+        </HStack>
+        <HStack align="center" fontSize="sm">
+          <Text fontWeight={"semibold"}>Priority:</Text>
+          <Badge colorPalette={getPriorityColor(task.priority)}>
+            {task.priority}
+          </Badge>
+        </HStack>
+        <HStack fontSize="sm">
+          <Text fontWeight={"semibold"}>Due Date:</Text>
+          <Text
+            color={
+              task.dueDate && new Date(task.dueDate) < new Date()
+                ? "red.500"
+                : "gray.500"
+            }
+          >
+            {formatDate(task.dueDate)}
+          </Text>
+        </HStack>{" "}
+        <HStack fontSize="sm">
+          <Text fontWeight={"semibold"}>Start Date:</Text>
+          <Text color={"gray.500"}>{formatDate(task.startDate)}</Text>
+        </HStack>
+      </Card.Body>
+    </Card.Root>
   );
 };
 
