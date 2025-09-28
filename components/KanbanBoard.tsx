@@ -1,41 +1,49 @@
 "use client";
-import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  HStack,
-  VStack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
+import React, { useState, useMemo } from "react";
+import { Box, HStack, VStack, Text, useDisclosure } from "@chakra-ui/react";
 import { Task, Project, TaskStatus } from "@/types";
 import KanbanColumn from "@/components/KanbanColumn";
 import TaskForm from "@/components/TaskForm";
 import KanbanFilter from "@/components/KanbanFilter";
 
+type FilterState = {
+  search: string;
+  projectId: string;
+  priority: string;
+  startDate: string;
+  endDate: string;
+};
+
 const KanbanBoard = () => {
   const { open, onOpen, onClose } = useDisclosure();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    projectId: "",
+    priority: "",
+    startDate: "",
+    endDate: "",
+  });
 
   // Sample data - in a real app, this would come from an API or state management
   const [projects] = useState<Project[]>([
     {
       id: "1",
-      name: "Website Redesign",
-      description: "Complete redesign of company website",
-      createdAt: new Date("2024-01-01"),
+      name: "Self-Service Portal",
+      description: "Complete redesign of company self-service portal",
+      createdAt: new Date("2025-09-20"),
     },
     {
       id: "2",
-      name: "Mobile App",
-      description: "New mobile application development",
-      createdAt: new Date("2024-01-15"),
+      name: "Online Shopping Portal",
+      description: "New online shopping portal development",
+      createdAt: new Date("2025-09-24"),
     },
     {
       id: "3",
-      name: "API Integration",
-      description: "Third-party API integration project",
-      createdAt: new Date("2024-02-01"),
+      name: "HRMS Portal",
+      description: "New HRMS portal development",
+      createdAt: new Date("2025-09-27"),
     },
   ]);
 
@@ -44,9 +52,8 @@ const KanbanBoard = () => {
       id: "1",
       projectId: "1",
       title: "Design homepage layout",
-      description: "Create wireframes and mockups for the new homepage",
       priority: "HIGH",
-      status: "TODO",
+      status: "IN_REVIEW",
       dueDate: new Date("2024-03-15"),
       startDate: new Date("2024-03-01"),
       createdAt: new Date("2024-02-20"),
@@ -56,7 +63,6 @@ const KanbanBoard = () => {
       id: "2",
       projectId: "1",
       title: "Implement responsive design",
-      description: "Make the design work on all device sizes",
       priority: "MEDIUM",
       status: "IN_PROGRESS",
       dueDate: new Date("2024-03-20"),
@@ -68,7 +74,6 @@ const KanbanBoard = () => {
       id: "3",
       projectId: "2",
       title: "User authentication",
-      description: "Implement login and registration functionality",
       priority: "URGENT",
       status: "IN_REVIEW",
       dueDate: new Date("2024-03-10"),
@@ -80,7 +85,6 @@ const KanbanBoard = () => {
       id: "4",
       projectId: "3",
       title: "API documentation",
-      description: "Write comprehensive API documentation",
       priority: "LOW",
       status: "DONE",
       dueDate: new Date("2024-02-28"),
@@ -90,7 +94,7 @@ const KanbanBoard = () => {
     },
   ]);
 
-  const handleCreateTask = (
+  const createTask = (
     taskData: Omit<Task, "id" | "createdAt" | "updatedAt">
   ) => {
     const newTask: Task = {
@@ -99,10 +103,12 @@ const KanbanBoard = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    console.log("create newTask", newTask);
     setTasks((prev) => [...prev, newTask]);
   };
 
-  const handleEditTask = (
+  const updateTask = (
     taskData: Omit<Task, "id" | "createdAt" | "updatedAt">
   ) => {
     if (!editingTask) return;
@@ -130,24 +136,111 @@ const KanbanBoard = () => {
     setEditingTask(null);
   };
 
+  // Filter tasks based on current filters
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      // Search filter
+      if (
+        filters.search &&
+        !task.title.toLowerCase().includes(filters.search.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Project filter
+      if (filters.projectId && task.projectId !== filters.projectId) {
+        return false;
+      }
+
+      // Priority filter
+      if (filters.priority && task.priority !== filters.priority) {
+        return false;
+      }
+
+      // Date range filter
+      if (filters.startDate || filters.endDate) {
+        const taskStartDate = task.startDate ? new Date(task.startDate) : null;
+        const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
+        const filterStartDate = filters.startDate
+          ? new Date(filters.startDate)
+          : null;
+        const filterEndDate = filters.endDate
+          ? new Date(filters.endDate)
+          : null;
+
+        // Check if task falls within the date range
+        let withinDateRange = true;
+
+        if (filterStartDate && filterEndDate) {
+          // Both start and end dates provided
+          const startDateMatch = taskStartDate
+            ? taskStartDate >= filterStartDate && taskStartDate <= filterEndDate
+            : false;
+          const dueDateMatch = taskDueDate
+            ? taskDueDate >= filterStartDate && taskDueDate <= filterEndDate
+            : false;
+          withinDateRange = startDateMatch || dueDateMatch;
+        } else if (filterStartDate) {
+          // Only start date provided
+          const startDateMatch = taskStartDate
+            ? taskStartDate >= filterStartDate
+            : false;
+          const dueDateMatch = taskDueDate
+            ? taskDueDate >= filterStartDate
+            : false;
+          withinDateRange = startDateMatch || dueDateMatch;
+        } else if (filterEndDate) {
+          // Only end date provided
+          const startDateMatch = taskStartDate
+            ? taskStartDate <= filterEndDate
+            : false;
+          const dueDateMatch = taskDueDate
+            ? taskDueDate <= filterEndDate
+            : false;
+          withinDateRange = startDateMatch || dueDateMatch;
+        }
+
+        if (!withinDateRange) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [tasks, filters]);
+
   const getTasksByStatus = (status: TaskStatus) => {
-    return tasks.filter((task) => task.status === status);
+    return filteredTasks.filter((task) => task.status === status);
+  };
+
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
   };
 
   const statuses: TaskStatus[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
 
   return (
-    <Box p={6}>
+    <Box p={{ base: 4, sm: 6, md: 8, lg: 10 }}>
       <VStack gap={6} align="stretch">
         <HStack justify="space-between" align="center">
           <Text fontSize="2xl" fontWeight="bold">
             Kanban Board
           </Text>
-          <Button colorScheme="blue" onClick={onOpen}>
-            Create New Task
-          </Button>
         </HStack>
-        <KanbanFilter />
+        <KanbanFilter
+          onFilter={handleFilterChange}
+          onOpen={onOpen}
+          projects={projects}
+        />
+
+        <TaskForm
+          open={open}
+          onClose={handleClose}
+          onSubmit={editingTask ? updateTask : createTask}
+          projects={projects}
+          initialData={editingTask || undefined}
+          mode={editingTask ? "edit" : "create"}
+        />
         <HStack gap={4} align="start" overflowX="auto" pb={4}>
           {statuses.map((status) => (
             <KanbanColumn
@@ -160,15 +253,6 @@ const KanbanBoard = () => {
           ))}
         </HStack>
       </VStack>
-
-      {/* <TaskForm
-        isOpen={open}
-        onClose={handleClose}
-        onSubmit={editingTask ? handleEditTask : handleCreateTask}
-        projects={projects}
-        initialData={editingTask || undefined}
-        mode={editingTask ? "edit" : "create"}
-      /> */}
     </Box>
   );
 };

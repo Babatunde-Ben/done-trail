@@ -1,5 +1,13 @@
 import React from "react";
-import { Box, Text, VStack, HStack, Badge, Heading } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Badge,
+  Heading,
+  Separator,
+} from "@chakra-ui/react";
 import { Task, Project, TaskStatus } from "@/types";
 import TaskBox from "./TaskBox";
 
@@ -61,6 +69,7 @@ const KanbanColumn = ({
         >
           {status.replace("_", " ")}
         </Heading>
+        <Separator />
 
         <VStack gap={3} align="stretch" flex="1">
           {tasks.length === 0 ? (

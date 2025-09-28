@@ -1,15 +1,6 @@
 import React from "react";
-import {
-  Box,
-  Text,
-  Badge,
-  VStack,
-  HStack,
-  Separator,
-  Card,
-} from "@chakra-ui/react";
+import { Text, Badge, HStack, Card } from "@chakra-ui/react";
 import { Task, Project, TaskPriority } from "@/types";
-import { TbSubtask } from "react-icons/tb";
 
 type TaskBoxProps = {
   task: Task;
