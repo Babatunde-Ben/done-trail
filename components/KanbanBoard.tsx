@@ -1,10 +1,20 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import { Box, HStack, VStack, Text, useDisclosure } from "@chakra-ui/react";
-import { Task, Project, TaskStatus } from "@/types";
+import {
+  Box,
+  HStack,
+  VStack,
+  useDisclosure,
+  Heading,
+  Separator,
+} from "@chakra-ui/react";
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
+import { Task, TaskStatus } from "@/types";
 import KanbanColumn from "@/components/KanbanColumn";
 import TaskForm from "@/components/TaskForm";
 import KanbanFilter from "@/components/KanbanFilter";
+import { LuKanban } from "react-icons/lu";
+import { useTasks } from "@/hooks/useTasks";
 
 type FilterState = {
   search: string;
@@ -25,104 +35,20 @@ const KanbanBoard = () => {
     endDate: "",
   });
 
-  // Sample data - in a real app, this would come from an API or state management
-  const [projects] = useState<Project[]>([
-    {
-      id: "1",
-      name: "Self-Service Portal",
-      description: "Complete redesign of company self-service portal",
-      createdAt: new Date("2025-09-20"),
-    },
-    {
-      id: "2",
-      name: "Online Shopping Portal",
-      description: "New online shopping portal development",
-      createdAt: new Date("2025-09-24"),
-    },
-    {
-      id: "3",
-      name: "HRMS Portal",
-      description: "New HRMS portal development",
-      createdAt: new Date("2025-09-27"),
-    },
-  ]);
+  // Use custom hook for task and project management with local storage
+  const { tasks, projects, setTasks, createTask, updateTask } = useTasks();
 
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "1",
-      projectId: "1",
-      title: "Design homepage layout",
-      priority: "HIGH",
-      status: "IN_REVIEW",
-      dueDate: new Date("2024-03-15"),
-      startDate: new Date("2024-03-01"),
-      createdAt: new Date("2024-02-20"),
-      updatedAt: new Date("2024-02-20"),
-    },
-    {
-      id: "2",
-      projectId: "1",
-      title: "Implement responsive design",
-      priority: "MEDIUM",
-      status: "IN_PROGRESS",
-      dueDate: new Date("2024-03-20"),
-      startDate: new Date("2024-03-05"),
-      createdAt: new Date("2024-02-22"),
-      updatedAt: new Date("2024-02-22"),
-    },
-    {
-      id: "3",
-      projectId: "2",
-      title: "User authentication",
-      priority: "URGENT",
-      status: "IN_REVIEW",
-      dueDate: new Date("2024-03-10"),
-      startDate: new Date("2024-02-25"),
-      createdAt: new Date("2024-02-25"),
-      updatedAt: new Date("2024-02-25"),
-    },
-    {
-      id: "4",
-      projectId: "3",
-      title: "API documentation",
-      priority: "LOW",
-      status: "DONE",
-      dueDate: new Date("2024-02-28"),
-      startDate: new Date("2024-02-15"),
-      createdAt: new Date("2024-02-15"),
-      updatedAt: new Date("2024-02-28"),
-    },
-  ]);
-
-  const createTask = (
+  const handleCreateTask = (
     taskData: Omit<Task, "id" | "createdAt" | "updatedAt">
   ) => {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    console.log("create newTask", newTask);
-    setTasks((prev) => [...prev, newTask]);
+    createTask(taskData);
   };
 
-  const updateTask = (
+  const handleUpdateTask = (
     taskData: Omit<Task, "id" | "createdAt" | "updatedAt">
   ) => {
     if (!editingTask) return;
-
-    const updatedTask: Task = {
-      ...taskData,
-      id: editingTask.id,
-      createdAt: editingTask.createdAt,
-      updatedAt: new Date(),
-    };
-
-    setTasks((prev) =>
-      prev.map((task) => (task.id === editingTask.id ? updatedTask : task))
-    );
+    updateTask(taskData, editingTask.id);
     setEditingTask(null);
   };
 
@@ -217,16 +143,85 @@ const KanbanBoard = () => {
     setFilters(newFilters);
   };
 
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    // If dropped outside a valid drop zone
+    if (!destination) {
+      return;
+    }
+
+    // If dropped in the same position
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const sourceStatus = source.droppableId as TaskStatus;
+    const destinationStatus = destination.droppableId as TaskStatus;
+
+    // Get tasks for source and destination columns
+    const sourceTasks = getTasksByStatus(sourceStatus);
+    const destinationTasks = getTasksByStatus(destinationStatus);
+
+    // Find the task being moved
+    const task = sourceTasks.find((t) => t.id === draggableId);
+    if (!task) {
+      return;
+    }
+
+    // If moving within the same column
+    if (sourceStatus === destinationStatus) {
+      const newTasks = Array.from(sourceTasks);
+      const [removed] = newTasks.splice(source.index, 1);
+      newTasks.splice(destination.index, 0, removed);
+
+      // Update all tasks in this column with new order
+      setTasks((prevTasks) => {
+        const otherTasks = prevTasks.filter((t) => t.status !== sourceStatus);
+        return [...otherTasks, ...newTasks];
+      });
+    } else {
+      // Moving to a different column
+      const newTask = {
+        ...task,
+        status: destinationStatus,
+        updatedAt: new Date(),
+      };
+
+      // Remove from source column
+      const newSourceTasks = Array.from(sourceTasks);
+      newSourceTasks.splice(source.index, 1);
+
+      // Add to destination column at the specified position
+      const newDestinationTasks = Array.from(destinationTasks);
+      newDestinationTasks.splice(destination.index, 0, newTask);
+
+      // Update all tasks
+      setTasks((prevTasks) => {
+        const otherTasks = prevTasks.filter(
+          (t) => t.status !== sourceStatus && t.status !== destinationStatus
+        );
+        return [...otherTasks, ...newSourceTasks, ...newDestinationTasks];
+      });
+    }
+  };
+
   const statuses: TaskStatus[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
 
   return (
     <Box p={{ base: 4, sm: 6, md: 8, lg: 10 }}>
       <VStack gap={6} align="stretch">
-        <HStack justify="space-between" align="center">
-          <Text fontSize="2xl" fontWeight="bold">
-            Kanban Board
-          </Text>
+        <HStack align="center" gap={3}>
+          <Box fontSize="2xl">
+            <LuKanban />
+          </Box>
+          <Heading> DoneTrail</Heading>
         </HStack>
+        <Separator />
+
         <KanbanFilter
           onFilter={handleFilterChange}
           onOpen={onOpen}
@@ -236,22 +231,24 @@ const KanbanBoard = () => {
         <TaskForm
           open={open}
           onClose={handleClose}
-          onSubmit={editingTask ? updateTask : createTask}
+          onSubmit={editingTask ? handleUpdateTask : handleCreateTask}
           projects={projects}
           initialData={editingTask || undefined}
           mode={editingTask ? "edit" : "create"}
         />
-        <HStack gap={4} align="start" overflowX="auto" pb={4}>
-          {statuses.map((status) => (
-            <KanbanColumn
-              key={status}
-              status={status}
-              tasks={getTasksByStatus(status)}
-              projects={projects}
-              onTaskEdit={handleTaskEdit}
-            />
-          ))}
-        </HStack>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <HStack gap={4} align="start" overflowX="auto" pb={4}>
+            {statuses.map((status) => (
+              <KanbanColumn
+                key={status}
+                status={status}
+                tasks={getTasksByStatus(status)}
+                projects={projects}
+                onTaskEdit={handleTaskEdit}
+              />
+            ))}
+          </HStack>
+        </DragDropContext>
       </VStack>
     </Box>
   );

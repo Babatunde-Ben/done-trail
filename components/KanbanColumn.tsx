@@ -1,13 +1,6 @@
 import React from "react";
-import {
-  Box,
-  Text,
-  VStack,
-  HStack,
-  Badge,
-  Heading,
-  Separator,
-} from "@chakra-ui/react";
+import { Box, VStack, Heading, Separator } from "@chakra-ui/react";
+import { Droppable } from "@hello-pangea/dnd";
 import { Task, Project, TaskStatus } from "@/types";
 import TaskBox from "./TaskBox";
 
@@ -71,22 +64,39 @@ const KanbanColumn = ({
         </Heading>
         <Separator />
 
-        <VStack gap={3} align="stretch" flex="1">
-          {tasks.length === 0 ? (
-            <Box textAlign="center" py={8} color="gray.500" fontSize="sm">
-              No tasks in this column
-            </Box>
-          ) : (
-            tasks.map((task) => (
-              <TaskBox
-                key={task.id}
-                task={task}
-                project={getProjectById(task.projectId)}
-                onEdit={onTaskEdit}
-              />
-            ))
+        <Droppable droppableId={status}>
+          {(provided, snapshot) => (
+            <VStack
+              gap={3}
+              align="stretch"
+              flex="1"
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              bg={snapshot.isDraggingOver ? "gray.100" : "transparent"}
+              borderRadius="md"
+              minH="200px"
+            >
+              {tasks.length === 0 ? (
+                <Box textAlign="center" py={8} color="gray.500" fontSize="sm">
+                  {snapshot.isDraggingOver
+                    ? "Drop task here"
+                    : "No tasks in this column"}
+                </Box>
+              ) : (
+                tasks.map((task, index) => (
+                  <TaskBox
+                    key={task.id}
+                    task={task}
+                    project={getProjectById(task.projectId)}
+                    onEdit={onTaskEdit}
+                    index={index}
+                  />
+                ))
+              )}
+              {provided.placeholder}
+            </VStack>
           )}
-        </VStack>
+        </Droppable>
       </VStack>
     </Box>
   );

@@ -223,11 +223,7 @@ const TaskForm = ({
                   loading={isSubmitting}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting
-                    ? "Saving..."
-                    : mode === "create"
-                    ? "Create Task"
-                    : "Update Task"}
+                  {isSubmitting ? "Saving..." : "Save"}
                 </Button>
               </Dialog.Footer>
             </form>

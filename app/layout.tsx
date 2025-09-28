@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "My Kanban Board",
-  description: "A simple kanban board application to manage your tasks",
+  title: "DoneTrail",
+  description: "Manage tasks from idea to done with an intuitive Kanban board.",
 };
 
 export default function RootLayout({
