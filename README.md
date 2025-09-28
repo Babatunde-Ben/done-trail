@@ -1,4 +1,4 @@
-# Kanban Board Application
+# DoneTrail Application
 
 A modern, responsive Kanban board application built with Next.js and Chakra UI for managing projects and tasks.
 
