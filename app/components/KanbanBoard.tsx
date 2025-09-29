@@ -2,20 +2,12 @@
 import React, { useState, useMemo } from "react";
 import { Box, HStack, VStack, useDisclosure } from "@chakra-ui/react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
-import { Task, TaskStatus } from "@/types";
+import { FilterState, Task, TaskStatus } from "@/types";
 import KanbanColumn from "@/app/components/KanbanColumn";
 import TaskForm from "@/app/components/TaskForm";
 import KanbanFilter from "@/app/components/KanbanFilter";
 
 import { useTasksContext } from "@/app/context/TasksContext";
-
-type FilterState = {
-  search: string;
-  projectId: string;
-  priority: string;
-  startDate: string;
-  endDate: string;
-};
 
 const KanbanBoard = () => {
   const { open, onOpen, onClose } = useDisclosure();
@@ -24,11 +16,11 @@ const KanbanBoard = () => {
     search: "",
     projectId: "",
     priority: "",
-    startDate: "",
-    endDate: "",
+    dueDateFrom: "",
+    dueDateTo: "",
   });
 
-  // tasks from context
+  // context for task management
   const { tasks, setTasks, createTask, updateTask } = useTasksContext();
 
   const handleCreateTask = (
@@ -37,6 +29,7 @@ const KanbanBoard = () => {
     createTask(taskData);
   };
 
+  // update task handler
   const handleUpdateTask = (
     taskData: Omit<Task, "id" | "createdAt" | "updatedAt">
   ) => {
@@ -45,20 +38,23 @@ const KanbanBoard = () => {
     setEditingTask(null);
   };
 
+  // task edit handler
   const handleTaskEdit = (task: Task) => {
     setEditingTask(task);
     onOpen();
   };
 
+  // close task form handler
   const handleClose = () => {
     onClose();
     setEditingTask(null);
   };
 
-  // Filter tasks based on current filters
+  // filter tasks based on current filters
+  // use memo to memoize the filtered tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      // Search filter
+      // search filter
       if (
         filters.search &&
         !task.title.toLowerCase().includes(filters.search.toLowerCase())
@@ -66,61 +62,34 @@ const KanbanBoard = () => {
         return false;
       }
 
-      // Project filter
+      // project filter
       if (filters.projectId && task.projectId !== filters.projectId) {
         return false;
       }
 
-      // Priority filter
+      // priority filter
       if (filters.priority && task.priority !== filters.priority) {
         return false;
       }
 
-      // Date range filter
-      if (filters.startDate || filters.endDate) {
-        const taskStartDate = task.startDate ? new Date(task.startDate) : null;
+      // due date range filter (only dueDate is considered)
+      if (filters.dueDateFrom || filters.dueDateTo) {
         const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
-        const filterStartDate = filters.startDate
-          ? new Date(filters.startDate)
+        const fromDate = filters.dueDateFrom
+          ? new Date(filters.dueDateFrom)
           : null;
-        const filterEndDate = filters.endDate
-          ? new Date(filters.endDate)
-          : null;
+        const toDate = filters.dueDateTo ? new Date(filters.dueDateTo) : null;
 
-        // Check if task falls within the date range
-        let withinDateRange = true;
-
-        if (filterStartDate && filterEndDate) {
-          // Both start and end dates provided
-          const startDateMatch = taskStartDate
-            ? taskStartDate >= filterStartDate && taskStartDate <= filterEndDate
-            : false;
-          const dueDateMatch = taskDueDate
-            ? taskDueDate >= filterStartDate && taskDueDate <= filterEndDate
-            : false;
-          withinDateRange = startDateMatch || dueDateMatch;
-        } else if (filterStartDate) {
-          // Only start date provided
-          const startDateMatch = taskStartDate
-            ? taskStartDate >= filterStartDate
-            : false;
-          const dueDateMatch = taskDueDate
-            ? taskDueDate >= filterStartDate
-            : false;
-          withinDateRange = startDateMatch || dueDateMatch;
-        } else if (filterEndDate) {
-          // Only end date provided
-          const startDateMatch = taskStartDate
-            ? taskStartDate <= filterEndDate
-            : false;
-          const dueDateMatch = taskDueDate
-            ? taskDueDate <= filterEndDate
-            : false;
-          withinDateRange = startDateMatch || dueDateMatch;
+        if (!taskDueDate) {
+          return false;
         }
 
-        if (!withinDateRange) {
-          return false;
+        if (fromDate && toDate) {
+          if (taskDueDate < fromDate || taskDueDate > toDate) return false;
+        } else if (fromDate) {
+          if (taskDueDate < fromDate) return false;
+        } else if (toDate) {
+          if (taskDueDate > toDate) return false;
         }
       }
 
@@ -128,23 +97,33 @@ const KanbanBoard = () => {
     });
   }, [tasks, filters]);
 
+  // get tasks by status
   const getTasksByStatus = (status: TaskStatus) => {
     return filteredTasks.filter((task) => task.status === status);
   };
 
-  const handleFilterChange = (newFilters: FilterState) => {
-    setFilters(newFilters);
+  // filter change handler
+  const handleFilterChange = (newFilters: Partial<FilterState>) => {
+    const normalized: FilterState = {
+      search: newFilters.search || "",
+      projectId: newFilters.projectId || "",
+      priority: newFilters.priority || "",
+      dueDateFrom: newFilters.dueDateFrom ?? "",
+      dueDateTo: newFilters.dueDateTo ?? "",
+    };
+    setFilters(normalized);
   };
 
+  // task drag end handler
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
-    // If dropped outside a valid drop zone
+    // if dropped outside a valid drop zone
     if (!destination) {
       return;
     }
 
-    // If dropped in the same position
+    // if dropped in the same position
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -155,44 +134,44 @@ const KanbanBoard = () => {
     const sourceStatus = source.droppableId as TaskStatus;
     const destinationStatus = destination.droppableId as TaskStatus;
 
-    // Get tasks for source and destination columns
+    // get tasks for source and destination columns
     const sourceTasks = getTasksByStatus(sourceStatus);
     const destinationTasks = getTasksByStatus(destinationStatus);
 
-    // Find the task being moved
+    // find the task being moved
     const task = sourceTasks.find((t) => t.id === draggableId);
     if (!task) {
       return;
     }
 
-    // If moving within the same column
+    // if moving within the same column
     if (sourceStatus === destinationStatus) {
       const newTasks = Array.from(sourceTasks);
       const [removed] = newTasks.splice(source.index, 1);
       newTasks.splice(destination.index, 0, removed);
 
-      // Update all tasks in this column with new order
+      // update all tasks in this column with new order
       setTasks((prevTasks) => {
         const otherTasks = prevTasks.filter((t) => t.status !== sourceStatus);
         return [...otherTasks, ...newTasks];
       });
     } else {
-      // Moving to a different column
+      // moving to a different column
       const newTask = {
         ...task,
         status: destinationStatus,
         updatedAt: new Date(),
       };
 
-      // Remove from source column
+      // remove from source column
       const newSourceTasks = Array.from(sourceTasks);
       newSourceTasks.splice(source.index, 1);
 
-      // Add to destination column at the specified position
+      // add to destination column at the specified position
       const newDestinationTasks = Array.from(destinationTasks);
       newDestinationTasks.splice(destination.index, 0, newTask);
 
-      // Update all tasks
+      // update all tasks
       setTasks((prevTasks) => {
         const otherTasks = prevTasks.filter(
           (t) => t.status !== sourceStatus && t.status !== destinationStatus
@@ -202,6 +181,7 @@ const KanbanBoard = () => {
     }
   };
 
+  // task statuses
   const statuses: TaskStatus[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
 
   return (

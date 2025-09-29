@@ -4,7 +4,7 @@ import { toaster } from "@/app/components/ui/toaster";
 
 const TASKS_STORAGE_KEY = "kanban-tasks";
 
-// Helper functions for task localStorage only
+// helper functions for task localStorage only
 const loadTasksFromStorage = (): Task[] => {
   if (typeof window === "undefined") return [];
 
@@ -12,7 +12,7 @@ const loadTasksFromStorage = (): Task[] => {
     const item = localStorage.getItem(TASKS_STORAGE_KEY);
     if (item) {
       const parsed = JSON.parse(item);
-      // Convert date strings back to Date objects
+      // convert date strings back to Date objects
       return parsed.map((item: Task) => ({
         ...item,
         createdAt: new Date(item.createdAt),
@@ -41,13 +41,13 @@ const saveTasksToStorage = (tasks: Task[]): void => {
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  // Load tasks from localStorage on page mount
+  // load tasks from localStorage on page mount
   useEffect(() => {
     const savedTasks = loadTasksFromStorage();
     setTasks(savedTasks);
   }, []);
 
-  // Save tasks to localStorage whenever tasks change
+  // save tasks to localStorage whenever tasks change
   useEffect(() => {
     if (tasks.length > 0) {
       saveTasksToStorage(tasks);
@@ -99,7 +99,7 @@ export const useTasks = () => {
   };
 
   const deleteTask = (taskId: string) => {
-    // Get task title before deleting for toast message
+    // get task title before deleting for toast message
     const taskToDelete = tasks.find((task) => task.id === taskId);
     const taskTitle = taskToDelete?.title || "Task";
 

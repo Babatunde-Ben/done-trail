@@ -8,18 +8,14 @@ import {
   VStack,
   Text,
   Button,
+  Portal,
+  Popover,
+  Field,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { LuPlus, LuSearch, LuCalendar, LuX } from "react-icons/lu";
-import { projects } from "@/app/utils/constant";
-
-type FilterState = {
-  search: string;
-  projectId: string;
-  priority: string;
-  startDate: string;
-  endDate: string;
-};
+import { priorities, projects } from "@/app/utils/constant";
+import { FilterState } from "@/types";
 
 type KanbanFilterProps = {
   onFilter: (filters: FilterState) => void;
@@ -31,11 +27,9 @@ const KanbanFilter = ({ onFilter, onOpen }: KanbanFilterProps) => {
     search: "",
     projectId: "",
     priority: "",
-    startDate: "",
-    endDate: "",
+    dueDateFrom: "",
+    dueDateTo: "",
   });
-
-  const [showDateRange, setShowDateRange] = useState(false);
 
   const handleFilterChange = (field: keyof FilterState, value: string) => {
     const newFilters = { ...filters, [field]: value };
@@ -48,8 +42,8 @@ const KanbanFilter = ({ onFilter, onOpen }: KanbanFilterProps) => {
       search: "",
       projectId: "",
       priority: "",
-      startDate: "",
-      endDate: "",
+      dueDateFrom: "",
+      dueDateTo: "",
     };
     setFilters(clearedFilters);
     onFilter(clearedFilters);
@@ -60,18 +54,28 @@ const KanbanFilter = ({ onFilter, onOpen }: KanbanFilterProps) => {
   return (
     <Box>
       <VStack gap={4} align="stretch">
-        <HStack gap={4}>
-          <InputGroup startElement={<LuSearch />}>
+        <HStack gap={3} flexWrap="wrap" align="stretch">
+          <InputGroup
+            startElement={<LuSearch />}
+            flex={{ base: "1 1 100%", sm: "1 1 280px" }}
+            minW={{ base: "100%", sm: "260px" }}
+          >
             <Input
               placeholder="Search by title"
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
+              w="100%"
+              size={"sm"}
             />
           </InputGroup>
 
-          <NativeSelect.Root>
+          <NativeSelect.Root
+            flex={{ base: "1 1 100%", sm: "1 1 220px" }}
+            minW={{ base: "100%", sm: "200px" }}
+            size={"sm"}
+          >
             <NativeSelect.Field
-              placeholder="All projects"
+              placeholder="Select project"
               value={filters.projectId}
               onChange={(e) => handleFilterChange("projectId", e.target.value)}
             >
@@ -84,78 +88,93 @@ const KanbanFilter = ({ onFilter, onOpen }: KanbanFilterProps) => {
             <NativeSelect.Indicator />
           </NativeSelect.Root>
 
-          <NativeSelect.Root>
+          <NativeSelect.Root
+            flex={{ base: "1 1 100%", sm: "1 1 180px" }}
+            minW={{ base: "100%", sm: "180px" }}
+            size={"sm"}
+          >
             <NativeSelect.Field
-              placeholder="All priorities"
+              placeholder="Select priority"
               value={filters.priority}
               onChange={(e) => handleFilterChange("priority", e.target.value)}
             >
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="URGENT">Urgent</option>
+              {priorities.map((priority) => (
+                <option key={priority.value} value={priority.value}>
+                  {priority.label}
+                </option>
+              ))}
             </NativeSelect.Field>
             <NativeSelect.Indicator />
           </NativeSelect.Root>
 
-          <IconButton
-            onClick={() => setShowDateRange(!showDateRange)}
-            variant={showDateRange ? "subtle" : "outline"}
-          >
-            <LuCalendar />
-          </IconButton>
+          <Popover.Root>
+            <Popover.Trigger asChild>
+              <IconButton variant={"outline"} size={"sm"}>
+                <LuCalendar />
+              </IconButton>
+            </Popover.Trigger>
+            <Portal>
+              <Popover.Positioner>
+                <Popover.Content maxW={{ base: "90vw", md: "md" }} w="100%">
+                  <Popover.Arrow />
+                  <Popover.Body>
+                    <Popover.Title fontWeight="medium">
+                      <Text
+                        fontSize="sm"
+                        color="gray.500"
+                        textAlign="center"
+                        fontWeight="medium"
+                        mb={2}
+                      >
+                        Due Date Range
+                      </Text>
+                    </Popover.Title>
+
+                    <VStack gap={2}>
+                      <Field.Root>
+                        <Field.Label>From</Field.Label>
+
+                        <Input
+                          type="date"
+                          placeholder="Start date"
+                          value={filters.dueDateFrom}
+                          onChange={(e) =>
+                            handleFilterChange("dueDateFrom", e.target.value)
+                          }
+                        />
+                      </Field.Root>
+
+                      <Field.Root>
+                        <Field.Label>To</Field.Label>
+
+                        <Input
+                          type="date"
+                          placeholder="End date"
+                          value={filters.dueDateTo}
+                          onChange={(e) =>
+                            handleFilterChange("dueDateTo", e.target.value)
+                          }
+                        />
+                      </Field.Root>
+                    </VStack>
+                  </Popover.Body>
+                </Popover.Content>
+              </Popover.Positioner>
+            </Portal>
+          </Popover.Root>
 
           {hasActiveFilters && (
-            <IconButton onClick={clearFilters} variant="outline">
+            <Button size={"sm"} onClick={clearFilters} variant="outline">
               <LuX />
-            </IconButton>
+              Clear Filters
+            </Button>
           )}
 
-          <Button onClick={onOpen} colorScheme="blue">
+          <Button size={"sm"} onClick={onOpen} w={{ base: "100%", md: "auto" }}>
             <LuPlus />
             Add Task
           </Button>
         </HStack>
-
-        {showDateRange && (
-          <HStack
-            gap={4}
-            p={4}
-            bg="gray.50"
-            borderRadius="md"
-            border="1px"
-            borderColor="gray.200"
-          >
-            <Text fontSize="sm" fontWeight="medium" minW="fit-content">
-              Date Range:
-            </Text>
-            <Input
-              type="date"
-              placeholder="Start date"
-              value={filters.startDate}
-              onChange={(e) => handleFilterChange("startDate", e.target.value)}
-            />
-            <Text fontSize="sm" color="gray.500">
-              to
-            </Text>
-            <Input
-              type="date"
-              placeholder="End date"
-              value={filters.endDate}
-              onChange={(e) => handleFilterChange("endDate", e.target.value)}
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                handleFilterChange("startDate", "");
-                handleFilterChange("endDate", "");
-              }}
-            >
-              Clear dates
-            </Button>
-          </HStack>
-        )}
       </VStack>
     </Box>
   );

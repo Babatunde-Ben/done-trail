@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { Task, TaskPriority, TaskStatus } from "@/types";
 import { useForm } from "react-hook-form";
-import { projects } from "@/app/utils/constant";
+import { priorities, projects } from "@/app/utils/constant";
 
 type TaskFormProps = {
   open: boolean;
@@ -59,6 +59,7 @@ const TaskForm = ({
     },
   });
 
+  // close form handler
   const handleClose = () => {
     reset({
       projectId: "",
@@ -70,6 +71,7 @@ const TaskForm = ({
     onClose();
   };
 
+  // submit form handler
   const onSubmitForm = (data: FormValues) => {
     const taskData = {
       projectId: data.projectId,
@@ -87,7 +89,7 @@ const TaskForm = ({
     handleClose();
   };
 
-  // Reset form when initialData changes (for edit mode)
+  // reset form when initialData changes (for edit mode)
   useEffect(() => {
     if (initialData) {
       reset({
@@ -142,7 +144,6 @@ const TaskForm = ({
                       <Field.ErrorText>{errors.title?.message}</Field.ErrorText>
                     </Field.Root>
                   </GridItem>
-
                   <GridItem>
                     <Field.Root required invalid={!!errors.projectId}>
                       <Field.Label>
@@ -169,7 +170,6 @@ const TaskForm = ({
                       </Field.ErrorText>
                     </Field.Root>
                   </GridItem>
-
                   <GridItem>
                     <Field.Root required invalid={!!errors.priority}>
                       <Field.Label>
@@ -182,10 +182,11 @@ const TaskForm = ({
                           })}
                           placeholder="Select priority"
                         >
-                          <option value="LOW">Low</option>
-                          <option value="MEDIUM">Medium</option>
-                          <option value="HIGH">High</option>
-                          <option value="URGENT">Urgent</option>
+                          {priorities.map((priority) => (
+                            <option key={priority.value} value={priority.value}>
+                              {priority.label}
+                            </option>
+                          ))}
                         </NativeSelect.Field>
                         <NativeSelect.Indicator />
                       </NativeSelect.Root>
@@ -194,18 +195,6 @@ const TaskForm = ({
                       </Field.ErrorText>
                     </Field.Root>
                   </GridItem>
-
-                  <GridItem>
-                    <Field.Root>
-                      <Field.Label>Start Date</Field.Label>
-                      <Input
-                        type="date"
-                        {...register("startDate")}
-                        placeholder="Select start date"
-                      />
-                    </Field.Root>
-                  </GridItem>
-
                   <GridItem>
                     <Field.Root>
                       <Field.Label>Due Date</Field.Label>
@@ -213,6 +202,16 @@ const TaskForm = ({
                         type="date"
                         {...register("dueDate")}
                         placeholder="Select due date"
+                      />
+                    </Field.Root>
+                  </GridItem>{" "}
+                  <GridItem>
+                    <Field.Root>
+                      <Field.Label>Start Date</Field.Label>
+                      <Input
+                        type="date"
+                        {...register("startDate")}
+                        placeholder="Select start date"
                       />
                     </Field.Root>
                   </GridItem>

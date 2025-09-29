@@ -1,4 +1,4 @@
-import { Project } from "@/types";
+import { Project, TaskPriority } from "@/types";
 
 export const projects: Project[] = [
   {
@@ -19,4 +19,11 @@ export const projects: Project[] = [
     description: "New HRMS portal development",
     createdAt: new Date("2025-09-27"),
   },
+];
+
+export const priorities: { value: TaskPriority; label: string }[] = [
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
+  { value: "URGENT", label: "Urgent" },
 ];

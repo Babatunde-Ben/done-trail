@@ -19,3 +19,11 @@ export interface Task {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type FilterState = {
+  search: string;
+  projectId: string;
+  priority: string;
+  dueDateFrom: string;
+  dueDateTo: string;
+};
