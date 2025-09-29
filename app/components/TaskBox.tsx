@@ -13,7 +13,7 @@ import { Task, Project, TaskPriority } from "@/types";
 import { LuInfo } from "react-icons/lu";
 import { Tooltip } from "@/app/components/ui/tooltip";
 import { HiDotsVertical, HiPencil, HiTrash } from "react-icons/hi";
-import { useTasks } from "@/app/hooks/useTasks";
+import { useTasksContext } from "@/app/context/TasksContext";
 
 type TaskBoxProps = {
   task: Task;
@@ -23,7 +23,7 @@ type TaskBoxProps = {
 };
 
 const TaskBox = ({ task, project, onEdit, index }: TaskBoxProps) => {
-  const { deleteTask } = useTasks();
+  const { deleteTask } = useTasksContext();
 
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {

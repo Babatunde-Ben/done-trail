@@ -1,4 +1,4 @@
-import { Box, Heading, HStack, Separator } from "@chakra-ui/react";
+import { Box, Heading, HStack } from "@chakra-ui/react";
 import React from "react";
 import { LuKanban } from "react-icons/lu";
 

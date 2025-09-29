@@ -59,6 +59,17 @@ const TaskForm = ({
     },
   });
 
+  const handleClose = () => {
+    reset({
+      projectId: "",
+      title: "",
+      priority: "MEDIUM",
+      dueDate: "",
+      startDate: "",
+    });
+    onClose();
+  };
+
   const onSubmitForm = (data: FormValues) => {
     const taskData = {
       projectId: data.projectId,
@@ -73,12 +84,7 @@ const TaskForm = ({
     };
 
     onSubmit(taskData);
-    onClose();
-  };
-
-  const handleClose = () => {
-    reset();
-    onClose();
+    handleClose();
   };
 
   // Reset form when initialData changes (for edit mode)

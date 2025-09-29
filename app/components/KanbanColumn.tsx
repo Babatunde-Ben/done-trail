@@ -49,6 +49,8 @@ const KanbanColumn = ({ status, tasks, onTaskEdit }: KanbanColumnProps) => {
       minH="600px"
       minW="270px"
       w="100%"
+      // width="500px"
+      // w={{ base: "270px", sm: "500px" }}
     >
       <VStack gap={4} align="stretch" minH="600px">
         <Heading

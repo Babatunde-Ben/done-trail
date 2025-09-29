@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Task, Project } from "@/types";
+import { Task } from "@/types";
+import { toaster } from "@/app/components/ui/toaster";
 
 const TASKS_STORAGE_KEY = "kanban-tasks";
 
@@ -48,7 +49,6 @@ export const useTasks = () => {
 
   // Save tasks to localStorage whenever tasks change
   useEffect(() => {
-    console.log("updated tasks", tasks);
     if (tasks.length > 0) {
       saveTasksToStorage(tasks);
     }
@@ -64,6 +64,13 @@ export const useTasks = () => {
       updatedAt: new Date(),
     };
     setTasks((prev) => [...prev, newTask]);
+
+    toaster.create({
+      title: "Task Created",
+      description: `"${taskData.title}" has been created successfully`,
+      type: "success",
+      duration: 3000,
+    });
   };
 
   const updateTask = (
@@ -82,11 +89,29 @@ export const useTasks = () => {
           : task
       )
     );
+
+    toaster.create({
+      title: "Task Updated",
+      description: `"${taskData.title}" has been updated successfully`,
+      type: "info",
+      duration: 3000,
+    });
   };
 
   const deleteTask = (taskId: string) => {
-    console.log("deleting task", taskId);
+    // Get task title before deleting for toast message
+    const taskToDelete = tasks.find((task) => task.id === taskId);
+    const taskTitle = taskToDelete?.title || "Task";
+
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
+
+    console.log("task has been deleted", taskToDelete);
+    toaster.create({
+      title: "Task Deleted",
+      description: `"${taskTitle}" has been deleted successfully`,
+      type: "warning",
+      duration: 3000,
+    });
   };
 
   return {
