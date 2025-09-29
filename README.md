@@ -1,74 +1,110 @@
-# DoneTrail Application
+# DoneTrail (Kanban) Application
 
-A modern, responsive Kanban board application built with Next.js and Chakra UI for managing projects and tasks.
+A modern, responsive Kanban board built with Next.js and Chakra UI. Manage tasks across projects with drag-and-drop, due-date filtering, and localStorage persistence.
 
 ## Features
 
-- **Project Management**: Create and manage multiple projects
-- **Task Management**: Create, edit, and organize tasks across different statuses
-- **Four Status Columns**: TODO, IN_PROGRESS, IN_REVIEW, DONE
-- **Rich Task Information**: Each task displays:
-  - Project name
-  - Task title
-  - Priority level (LOW, MEDIUM, HIGH, URGENT)
-  - Start date
-  - Due date
-  - Current status
-- **Responsive Design**: Works on desktop and mobile devices
-- **Modern UI**: Built with Chakra UI for a clean, professional look
+- **Task Management**: Create and edit tasks with `react-hook-form`
+- **Four Columns**: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`
+- **Drag & Drop**: Move tasks within/between columns with `@hello-pangea/dnd`
+- **Persistence**: Tasks saved to `localStorage` (create/read/update/delete)
+- **Global State**: `TasksContext` provides tasks and actions (no prop drilling)
+- **Due-Date Range Filter**: Filter by due date (From/To) only, plus search, project, priority
+- **Responsive Filters**: Filter bar wraps on small screens and adapts widths
+- **Toasts**: Success/info/warning toasts on create/update/delete
+- **Task Card Details**: Project name, title, priority, start date, due date
 
 ## Getting Started
 
-1. Install dependencies:
+### Prerequisites
 
-   ```bash
-   npm install
-   ```
+- Node.js 18+ (recommended: LTS)
+- npm 9+
 
-2. Run the development server:
+### Install
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm install
+```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+### Development
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+### Production build
+
+```bash
+npm run build
+npm start
+```
+
+### Scripts
+
+- `npm run dev` – start Next.js in development (Turbopack)
+- `npm run build` – build for production (Turbopack)
+- `npm start` – run the production server
+- `npm run lint` – run eslint
+
+### Environment
+
+No env vars are required. Tasks persist in browser `localStorage`.
 
 ## Usage
 
-- **Create a Task**: Click the "Create New Task" button to add a new task
-- **Edit a Task**: Click on any task card to edit its details
-- **View Tasks**: Tasks are organized in columns based on their status
-- **Track Progress**: Move tasks between columns as work progresses
+- **Create a Task**: Click "Add Task" to open the form
+- **Edit a Task**: Click a task card (title area) to edit
+- **Move Tasks**: Drag a task to a new position or column; order is preserved
+- **Filter Tasks**:
+  - Search by title
+  - Filter by project and priority
+  - Filter by due date range (From/To). Only `dueDate` is considered
+- **Delete Task**: Use the card menu (⋮) → Delete
 
 ## Technology Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **UI Library**: Chakra UI v3
-- **Styling**: Emotion (CSS-in-JS)
-- **Icons**: React Icons
+- **Framework**: Next.js 15 (App Router), React 19, TypeScript
+- **UI**: Chakra UI v3 (with `@chakra-ui/react` components)
+- **Drag & Drop**: `@hello-pangea/dnd`
+- **Forms**: `react-hook-form`
+- **Icons**: `react-icons`
 
 ## Project Structure
 
 ```
 ├── app/
-│   ├── layout.tsx          # Root layout with providers
-│   └── page.tsx            # Main page component
-├── components/
-│   ├── TaskBox.tsx         # Individual task card component
-│   ├── TaskForm.tsx        # Task creation/editing form
-│   ├── KanbanColumn.tsx    # Column component for each status
-│   ├── KanbanBoard.tsx     # Main board component
-│   └── ui/                 # Chakra UI provider components
-├── types/
-│   └── index.ts            # TypeScript type definitions
+│   ├── components/
+│   │   ├── KanbanBoard.tsx      # Main board (filters, DnD, modal)
+│   │   ├── KanbanColumn.tsx     # Column wrapper with Droppable
+│   │   ├── KanbanFilter.tsx     # Responsive filter bar (due-date range)
+│   │   ├── TaskBox.tsx          # Task card (Draggable)
+│   │   ├── TaskForm.tsx         # Create/update form (react-hook-form)
+│   │   └── ui/
+│   │       ├── provider.tsx     # Chakra Provider wrapper
+│   │       ├── toaster.tsx      # Toaster + `toaster.create`
+│   │       └── tooltip.tsx      # Tooltip wrapper
+│   ├── context/TasksContext.tsx # Global tasks context provider
+│   ├── hooks/useTasks.ts        # Tasks + localStorage (CRUD + toasts)
+│   ├── utils/constant.ts        # Static `projects`, `priorities`
+│   ├── layout.tsx               # Root layout (Providers + Toaster)
+│   └── page.tsx                 # Entry page
+├── types/index.ts               # `Task`, `TaskStatus`, `TaskPriority`, `FilterState`
 └── README.md
 ```
 
-## Future Enhancements
+## State & Data
 
-- Drag and drop functionality for moving tasks between columns
-- Task filtering and searching
-- Project management features
-- User authentication
-- Data persistence with a backend API
-- Real-time collaboration
+- **Tasks**: Stored in localStorage via `useTasks` (create/update/delete persist)
+- **Projects**: Provided as static seed data (`app/utils/constant.ts`); not persisted
+- **Context**: `TasksProvider` exposes `{ tasks, setTasks, createTask, updateTask, deleteTask }`
+- **Toasts**: `toaster.create({ title, description, type, duration })` used in CRUD
+
+## Filtering
+
+- Search by title (case-insensitive)
+- Project and priority filters
+- Due-date range (From/To) filters only by `task.dueDate`
+- Responsive filter bar: inputs wrap and resize on small screens
