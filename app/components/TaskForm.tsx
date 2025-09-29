@@ -11,14 +11,15 @@ import {
   GridItem,
   Field,
 } from "@chakra-ui/react";
-import { Task, Project, TaskPriority, TaskStatus } from "@/types";
+import { Task, TaskPriority, TaskStatus } from "@/types";
 import { useForm } from "react-hook-form";
+import { projects } from "@/app/utils/constant";
 
 type TaskFormProps = {
   open: boolean;
   onClose: () => void;
   onSubmit: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
-  projects: Project[];
+
   initialData?: Partial<Task>;
   mode: "create" | "edit";
 };
@@ -34,7 +35,7 @@ interface FormValues {
 const TaskForm = ({
   open,
   onSubmit,
-  projects,
+
   initialData,
   mode,
   onClose,
@@ -219,7 +220,6 @@ const TaskForm = ({
                 </Dialog.ActionTrigger>
                 <Button
                   type="submit"
-                  colorScheme="blue"
                   loading={isSubmitting}
                   disabled={isSubmitting}
                 >

@@ -1,34 +1,29 @@
 import React from "react";
 import { Box, VStack, Heading, Separator } from "@chakra-ui/react";
 import { Droppable } from "@hello-pangea/dnd";
-import { Task, Project, TaskStatus } from "@/types";
+import { Task, TaskStatus } from "@/types";
 import TaskBox from "./TaskBox";
+import { projects } from "@/app/utils/constant";
 
 type KanbanColumnProps = {
   status: TaskStatus;
   tasks: Task[];
-  projects: Project[];
   onTaskEdit: (task: Task) => void;
 };
 
-const KanbanColumn = ({
-  status,
-  tasks,
-  projects,
-  onTaskEdit,
-}: KanbanColumnProps) => {
+const KanbanColumn = ({ status, tasks, onTaskEdit }: KanbanColumnProps) => {
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
       case "TODO":
-        return "gray.50";
+        return "gray.500";
       case "IN_PROGRESS":
-        return "blue.50";
+        return "blue.500";
       case "IN_REVIEW":
-        return "purple.50";
+        return "purple.500";
       case "DONE":
-        return "green.50";
+        return "green.500";
       default:
-        return "gray.50";
+        return "gray.500";
     }
   };
 
@@ -44,21 +39,24 @@ const KanbanColumn = ({
 
   return (
     <Box
-      bgColor={getStatusColor(status)}
-      borderWidth="1px"
-      borderColor={"gray.100"}
+      bgColor={"gray.50"}
+      border={"1px solid"}
+      borderTop={"3px solid"}
       borderRadius="lg"
+      borderColor={"gray.200"}
+      borderTopColor={getStatusColor(status)}
       p={2}
       minH="600px"
       minW="270px"
       w="100%"
     >
-      <VStack gap={4} align="stretch">
+      <VStack gap={4} align="stretch" minH="600px">
         <Heading
           fontSize="md"
           fontWeight="semibold"
           textTransform="capitalize"
           textAlign="center"
+          color={getStatusColor(status)}
         >
           {status.replace("_", " ")}
         </Heading>
@@ -74,7 +72,6 @@ const KanbanColumn = ({
               {...provided.droppableProps}
               bg={snapshot.isDraggingOver ? "gray.100" : "transparent"}
               borderRadius="md"
-              minH="200px"
             >
               {tasks.length === 0 ? (
                 <Box textAlign="center" py={8} color="gray.500" fontSize="sm">

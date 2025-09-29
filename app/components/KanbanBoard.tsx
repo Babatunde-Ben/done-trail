@@ -3,11 +3,11 @@ import React, { useState, useMemo } from "react";
 import { Flex, HStack, VStack, useDisclosure } from "@chakra-ui/react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { Task, TaskStatus } from "@/types";
-import KanbanColumn from "@/components/KanbanColumn";
-import TaskForm from "@/components/TaskForm";
-import KanbanFilter from "@/components/KanbanFilter";
+import KanbanColumn from "@/app/components/KanbanColumn";
+import TaskForm from "@/app/components/TaskForm";
+import KanbanFilter from "@/app/components/KanbanFilter";
 
-import { useTasks } from "@/hooks/useTasks";
+import { useTasks } from "@/app/hooks/useTasks";
 
 type FilterState = {
   search: string;
@@ -205,7 +205,7 @@ const KanbanBoard = () => {
   const statuses: TaskStatus[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
 
   return (
-    <Flex as={"main"} minH={"100vh"} p={{ base: 4, sm: 6, md: 8, lg: 10 }}>
+    <Flex as={"main"} minH={"85vh"} p={{ base: 4, sm: 6, md: 8, lg: 10 }}>
       <VStack gap={6} align="stretch">
         <KanbanFilter onFilter={handleFilterChange} onOpen={onOpen} />
 

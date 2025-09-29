@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { LuPlus, LuSearch, LuCalendar, LuX } from "react-icons/lu";
-import { Project } from "@/types";
+import { projects } from "@/app/utils/constant";
 
 type FilterState = {
   search: string;
@@ -24,10 +24,9 @@ type FilterState = {
 type KanbanFilterProps = {
   onFilter: (filters: FilterState) => void;
   onOpen: () => void;
-  projects: Project[];
 };
 
-const KanbanFilter = ({ onFilter, onOpen, projects }: KanbanFilterProps) => {
+const KanbanFilter = ({ onFilter, onOpen }: KanbanFilterProps) => {
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     projectId: "",
@@ -112,9 +111,10 @@ const KanbanFilter = ({ onFilter, onOpen, projects }: KanbanFilterProps) => {
             </IconButton>
           )}
 
-          <IconButton onClick={onOpen} colorScheme="blue">
+          <Button onClick={onOpen} colorScheme="blue">
             <LuPlus />
-          </IconButton>
+            Add Task
+          </Button>
         </HStack>
 
         {showDateRange && (
